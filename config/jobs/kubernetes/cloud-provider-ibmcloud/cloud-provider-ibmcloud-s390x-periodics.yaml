@@ -214,6 +214,7 @@ periodics:
                   export BOSKOS_REGION=$(echo ${output} | jq -r '.userdata["region"]')
                   export BOSKOS_RESOURCE_GROUP=$(echo ${output} | jq -r '.userdata["resource-group-name"]')
                   export BOSKOS_ZONE=$(echo ${output} | jq -r '.userdata["zone"]')
+                  export BOSKOS_RESOURCE_TYPE=${RESOURCE_TYPE}
                   rm -rf output.json
                 else
                   echo "Failed to acquire resource due to invalid response, status code : ${status_code}"
@@ -228,7 +229,7 @@ periodics:
               go install sigs.k8s.io/kubetest2/kubetest2-tester-ginkgo@latest
 
               CLUSTER_NAME="config1-$(date +%s)"
-              kubetest2 tf  --target-provider vpc  --vpc-node-image-name ibm-ubuntu-22-04-4-minimal-s390x-3 \
+              kubetest2 tf --target-provider vpc --vpc-node-image-name ibm-ubuntu-22-04-4-minimal-s390x-3 \
               --vpc-region ${BOSKOS_REGION} --vpc-zone ${BOSKOS_ZONE} \
               --vpc-name ${BOSKOS_RESOURCE_NAME} \
               --vpc-resource-group ${BOSKOS_RESOURCE_GROUP} \
@@ -243,7 +244,10 @@ periodics:
               --workers-count 2 \
               --up --auto-approve --retry-on-tf-failure 3 \
               --break-kubetest-on-upfail true \
-              --build-version $(curl -Ls https://dl.k8s.io/ci/latest.txt) \
+              --extra-vars=cluster_name:$CLUSTER_NAME \
+              --extra-vars=build_version:$(curl -Ls https://dl.k8s.io/ci/latest.txt) \
+              --extra-vars=kubeconfig_path:$(pwd)/$CLUSTER_NAME/kubeconfig \
+              --extra-vars=vpc_ssh_key:k8s-s390x-ssh-key \
               --test=ginkgo -- --parallel 10 --test-package-dir ci --test-package-marker latest.txt --focus-regex='\[Conformance\]' --skip-regex='\[Serial\]'; rc1=$?
               export KUBECONFIG="$(pwd)/$CLUSTER_NAME/kubeconfig"
               export ARTIFACTS=$ARTIFACTS/serial_tests_artifacts
