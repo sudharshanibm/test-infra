@@ -231,12 +231,15 @@ periodics:
 
               CLUSTER_NAME="config1-$(date +%s)"
               kubetest2 tf  --target-provider vpc  --vpc-node-image-name ibm-ubuntu-22-04-4-minimal-s390x-3 --boskos-resource-type vpc \
-              --vpc-region ${BOSKOS_REGION} --vpc-zone ${BOSKOS_ZONE} --vpc-subnet ${BOSKOS_SUBNET_NAME}\
+              --vpc-region ${BOSKOS_REGION} --vpc-zone ${BOSKOS_ZONE} --vpc-subnet ${BOSKOS_SUBNET_NAME} \
               --vpc-name ${BOSKOS_RESOURCE_NAME} \
               --vpc-resource-group ${BOSKOS_RESOURCE_GROUP} \
-              --vpc-ssh-key k8s-s390x-prow-ssh-key \
+              --vpc-ssh-key k8s-s390x-ssh-key \
               --vpc-node-profile bz2-4x16 \
               --ssh-private-key /etc/secret-volume/ssh-privatekey \
+              --extra-vars=ansible_user:k8s-admin \
+              --extra-vars=ansible_become:true \
+              --extra-vars=ansible_become_method:sudo \
               --extra-vars=k8s_tar_bundles:kubernetes-server-linux-s390x.tar.gz \
               --extra-vars=pod_subnet:10.244.0.0/16 \
               --extra-vars=cni_provider:flannel \
