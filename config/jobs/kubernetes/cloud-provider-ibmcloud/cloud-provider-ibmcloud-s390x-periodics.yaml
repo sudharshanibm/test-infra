@@ -57,6 +57,11 @@ periodics:
         args:
         - ./hack/jenkins/test-integration-dockerized.sh
         env:
+        # Keep CPU available for etcd and the apiservers started by individual
+        # integration test binaries. Without this limit, package-level and
+        # in-process parallelism can consume all six CPUs and delay readiness.
+        - name: KUBE_INTEGRATION_TEST_MAX_CONCURRENCY
+          value: "4"
         - name: SHORT
           value: --short=false
         # docker-in-docker needs privileged mode
